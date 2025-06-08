@@ -5,8 +5,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 /**
  * Response DTO for dashboard endpoint that provides
  * a comprehensive view of both metrics and recent activity.
@@ -28,16 +26,6 @@ public class DashboardResponse {
      * MeanTime to Recovery metric data.
      */
     private MTTRResponse meanTimeToRecovery;
-
-    /**
-     * Summary of recent incidents for context.
-     */
-    private List<IncidentSummary> recentIncidents;
-
-    /**
-     * Summary of recent deployments for context.
-     */
-    private List<DeploymentSummary> recentDeployments;
 
     /**
      * Summary information about the dashboard data.
@@ -71,7 +59,6 @@ public class DashboardResponse {
     public static class DeploymentSummary {
         private String deploymentId;
         private String status;
-//        private String environment;
         private String applicationName;
         private String version;
         private String timestamp;
@@ -89,6 +76,5 @@ public class DashboardResponse {
         private int totalIncidents;
         private int totalDeployments;
         private int resolvedIncidents;
-        private int successfulDeployments;
     }
 }
