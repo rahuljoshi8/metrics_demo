@@ -1,0 +1,58 @@
+name: Monitoring and Maintenance
+
+on:
+  schedule:
+    # Run every 2 hours to generate regular activity
+    - cron: '0 */2 * * *'
+  workflow_dispatch:
+
+jobs:
+  health-check:
+    name: System Health Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check system health
+        run: |
+          echo "🏥 Performing system health check..."
+          sleep 8
+          # Simulate occasional health check failures (represents incidents)
+          if [ $((RANDOM % 20)) -lt 18 ]; then
+            echo "✅ All systems healthy!"
+          else
+            echo "⚠️ Health check detected issues!"
+            echo "🚨 This simulates an incident for DORA metrics"
+            exit 1
+          fi
+
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Run security scan
+        run: |
+          echo "🔒 Running security vulnerability scan..."
+          sleep 12
+          echo "✅ No security issues found!"
+
+  performance-check:
+    name: Performance Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Run performance tests
+        run: |
+          echo "⚡ Running performance benchmarks..."
+          sleep 10
+          # Simulate performance issues occasionally
+          if [ $((RANDOM % 25)) -lt 22 ]; then
+            echo "✅ Performance within acceptable limits!"
+          else
+            echo "⚠️ Performance degradation detected!"
+            echo "🐌 This could indicate a potential failure"
+            exit 1
+          fi

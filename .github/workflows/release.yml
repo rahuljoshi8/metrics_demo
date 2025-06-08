@@ -1,0 +1,57 @@
+name: Release Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version'
+        required: false
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+jobs:
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Prepare release
+        run: |
+          echo "📦 Preparing release package..."
+          sleep 10
+          echo "✅ Release package ready!"
+
+      - name: Simulate deployment
+        run: |
+          echo "🚀 Simulating deployment process..."
+          sleep 15
+          # Simulate occasional deployment failures
+          if [ $((RANDOM % 15)) -lt 13 ]; then
+            echo "✅ Deployment simulation successful!"
+            echo "📈 This counts as a successful deployment for DORA metrics"
+          else
+            echo "❌ Deployment simulation failed!"
+            exit 1
+          fi
+
+      - name: Post-deployment verification
+        run: |
+          echo "🔍 Running post-deployment checks..."
+          sleep 5
+          echo "✅ All systems operational!"
+
+      - name: Update metrics
+        run: |
+          echo "📊 Recording deployment metrics..."
+          echo "Deployment completed at: $(date)"
+          echo "Commit SHA: $GITHUB_SHA"
+          echo "✅ Metrics recorded for dashboard consumption"

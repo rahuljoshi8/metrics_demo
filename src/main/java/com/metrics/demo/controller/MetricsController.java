@@ -5,6 +5,7 @@ import com.metrics.demo.dto.request.MetricsRequest;
 import com.metrics.demo.dto.response.ChangeFailureRateResponse;
 import com.metrics.demo.dto.response.DashboardResponse;
 import com.metrics.demo.dto.response.MTTRResponse;
+import com.metrics.demo.service.GitHubActionsService;
 import com.metrics.demo.service.MetricsCalculationService;
 //import com.metrics.demo.service.MetricsCacheService;
 import com.metrics.demo.service.PagerDutyService;
@@ -42,6 +43,7 @@ public class MetricsController {
     private final MetricsCalculationService metricsCalculationService;
 //    private final MetricsCacheService cacheService;
     private final PagerDutyService pagerDutyService;
+    private final GitHubActionsService gitHubActionsService;
 
     @GetMapping("/change-failure-rate")
     @Operation(summary = "Calculate Change Failure Rate",
@@ -202,6 +204,12 @@ public class MetricsController {
     @GetMapping("/incidents")
     public void getIncidents(){
         pagerDutyService.syncIncidents();
+
+    }
+
+    @GetMapping("/workflows")
+    public void getWorkflowRuns(){
+        gitHubActionsService.syncDeployments();
 
     }
 }
