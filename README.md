@@ -146,6 +146,7 @@ graph TB
    git clone https://github.com/rahuljoshi8/metrics_demo.git
    cd metrics_demo
    ```
+### **Since the repository is private, for ease of setup, tokens have been kept as is in the properties file.**
 
 2. **Set up environment variables:**
    ```bash
