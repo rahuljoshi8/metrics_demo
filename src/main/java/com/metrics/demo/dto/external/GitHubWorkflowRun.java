@@ -112,9 +112,6 @@ public class GitHubWorkflowRun {
         @JsonProperty("full_name")
         private String fullName;
 
-        @JsonProperty("owner")
-        private Owner owner;
-
         @Data
         @Builder
         @NoArgsConstructor

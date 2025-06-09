@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
  * Response DTO for dashboard endpoint that provides
  * a comprehensive view of both metrics and recent activity.
  *
- * @author Technical Lead Assignment
+ *
  */
 @Data
 @Builder

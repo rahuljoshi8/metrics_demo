@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
  * Maps to the structure returned by PagerDuty's REST API
  * for incident objects.
  *
- * @author Technical Lead Assignment
+ *
  */
 @Data
 @Builder

@@ -6,7 +6,7 @@ package com.metrics.demo.enums;
  * These statuses represent the outcome of a deployment:
  * - SUCCESS: Deployment completed successfully
  * - FAILURE: Deployment failed
- * - ABORTED: Deployment was manually aborted
+ * - CANCELLED: Deployment was manually CANCELLED
  *
  *
  */
@@ -23,12 +23,6 @@ public enum DeploymentStatus {
      * These deployments are counted in the total for CFR calculation.
      */
     FAILURE,
-
-    /**
-     * Deployment was manually aborted.
-     * These deployments are typically excluded from CFR calculations.
-     */
-    ABORTED,
 
     /**
      * Deployment was cancelled.

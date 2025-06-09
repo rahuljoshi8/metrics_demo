@@ -1,28 +1,23 @@
 package com.metrics.demo.controller;
 
 
-import com.metrics.demo.dto.request.MetricsRequest;
 import com.metrics.demo.dto.response.ChangeFailureRateResponse;
 import com.metrics.demo.dto.response.DashboardResponse;
 import com.metrics.demo.dto.response.MTTRResponse;
 import com.metrics.demo.service.GitHubActionsService;
 import com.metrics.demo.service.MetricsCalculationService;
-//import com.metrics.demo.service.MetricsCacheService;
 import com.metrics.demo.service.PagerDutyService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 /**
  * REST controller for metrics endpoints.
@@ -30,7 +25,7 @@ import java.util.Optional;
  * Provides endpoints to calculate and retrieve engineering metrics
  * such as Change Failure Rate and Mean Time to Recovery.
  *
- * @author Technical Lead Assignment
+ *
  */
 @RestController
 @RequestMapping("/api/v1/metrics")
@@ -41,11 +36,10 @@ import java.util.Optional;
 public class MetricsController {
 
     private final MetricsCalculationService metricsCalculationService;
-//    private final MetricsCacheService cacheService;
     private final PagerDutyService pagerDutyService;
     private final GitHubActionsService gitHubActionsService;
 
-    @GetMapping("/change-failure-rate")
+    @GetMapping("/changeFailureRate")
     @Operation(summary = "Calculate Change Failure Rate",
             description = "Calculates the Change Failure Rate (CFR) for a specified time period")
     public ResponseEntity<ChangeFailureRateResponse> getChangeFailureRate(
@@ -57,21 +51,11 @@ public class MetricsController {
 
         log.info("Calculating CFR for period {} to {}", startDate, endDate);
 
-        // Check cache first
-//        String timeRange = metricsCalculationService.determineTimeRange(startDate, endDate);
-//        Optional<ChangeFailureRateResponse> cached = cacheService.getCachedChangeFailureRate(timeRange, startDate, endDate);
-//
-//        if (cached.isPresent()) {
-//            log.info("Returning cached CFR result");
-//            return ResponseEntity.ok(cached.get());
-//        }
 
-        // Calculate new metric
+        // Calculate metric
         ChangeFailureRateResponse response = metricsCalculationService
                 .calculateChangeFailureRate(startDate, endDate);
 
-        // Cache the result
-//        cacheService.cacheChangeFailureRate(response);
 
         return ResponseEntity.ok(response);
     }
@@ -90,21 +74,12 @@ public class MetricsController {
 
         log.info("Calculating MTTR for period {} to {}", startDate, endDate);
 
-        // Check cache first
-//        String timeRange = metricsCalculationService.determineTimeRange(startDate, endDate);
-//        Optional<MTTRResponse> cached = cacheService.getCachedMTTR(timeRange, startDate, endDate);
 
-//        if (cached.isPresent()) {
-//            log.info("Returning cached MTTR result");
-//            return ResponseEntity.ok(cached.get());
-//        }
-
-        // Calculate new metric
+        // Calculate metric
         MTTRResponse response = metricsCalculationService
                 .calculateMeanTimeToRecovery(startDate, endDate);
 
-        // Cache the result
-//      cacheService.cacheMTTR(response);
+
 
         return ResponseEntity.ok(response);
     }
@@ -122,8 +97,7 @@ public class MetricsController {
             @Parameter(description = "Custom end date (required if timeRange=custom)")
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate
 
-//            @Parameter(description = "Optional environment filter")
-//            @RequestParam(required = false) String environment
+
                 ) {
 
         log.info("Getting dashboard data for timeRange: {}", timeRange);
@@ -155,26 +129,7 @@ public class MetricsController {
         return ResponseEntity.ok(dashboard);
     }
 
-    @PostMapping("/calculate")
-    @Operation(summary = "Calculate Metrics with Request Body",
-            description = "Calculate metrics using a request body for more complex filtering")
-    public ResponseEntity<DashboardResponse> calculateMetrics(@Valid @RequestBody MetricsRequest request) {
 
-        log.info("Calculating metrics with request: {}", request);
-
-        ChangeFailureRateResponse cfr = metricsCalculationService
-                .calculateChangeFailureRate(request.getStartDate(), request.getEndDate());
-
-        MTTRResponse mttr = metricsCalculationService
-                .calculateMeanTimeToRecovery(request.getStartDate(), request.getEndDate());
-
-        DashboardResponse dashboard = DashboardResponse.builder()
-                .changeFailureRate(cfr)
-                .meanTimeToRecovery(mttr)
-                .build();
-
-        return ResponseEntity.ok(dashboard);
-    }
 
     private LocalDateTime[] calculateDateRange(String timeRange, LocalDateTime customStart, LocalDateTime customEnd) {
         LocalDateTime end = LocalDateTime.now();
@@ -202,13 +157,13 @@ public class MetricsController {
 
 
     @GetMapping("/incidents")
-    public void getIncidents(){
+    public void syncIncidents(){
         pagerDutyService.syncIncidents();
 
     }
 
-    @GetMapping("/workflows")
-    public void getWorkflowRuns(){
+    @GetMapping("/deployments")
+    public void syncDeployments(){
         gitHubActionsService.syncDeployments();
 
     }

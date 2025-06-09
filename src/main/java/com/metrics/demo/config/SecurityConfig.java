@@ -12,8 +12,7 @@ import org.springframework.security.web.SecurityFilterChain;
  *
  * Configures basic authentication and access rules.
  *
- * @author Technical Lead Assignment
- */
+// */
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {

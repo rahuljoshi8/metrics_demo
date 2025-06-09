@@ -3,7 +3,6 @@ package com.metrics.demo.service.impl;
 
 import com.metrics.demo.dto.response.ChangeFailureRateResponse;
 import com.metrics.demo.dto.response.MTTRResponse;
-import com.metrics.demo.entity.Deployment;
 import com.metrics.demo.entity.Incident;
 import com.metrics.demo.repository.DeploymentRepository;
 import com.metrics.demo.repository.IncidentRepository;
@@ -24,7 +23,7 @@ import java.util.List;
  * Calculates engineering metrics based on incident and deployment data
  * stored in the database.
  *
- * @author Technical Lead Assignment
+ *
  */
 @Service
 @RequiredArgsConstructor
@@ -97,7 +96,7 @@ public class MetricsCalculationServiceImpl implements MetricsCalculationService 
 
         String timeRange = determineTimeRange(startDate, endDate);
 
-        log.info("MTTR calculation complete: {:.2f} minutes ({:.2f} hours) for {} resolved incidents",
+        log.info("MTTR calculation complete: {} minutes ({} hours) for {} resolved incidents",
                 mttrMinutes, mttrHours, resolvedIncidents.size());
 
         return MTTRResponse.builder()

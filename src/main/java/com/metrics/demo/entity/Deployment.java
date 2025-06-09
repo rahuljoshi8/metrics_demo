@@ -24,7 +24,7 @@ import java.time.LocalDateTime;
  * - timestamp: When the deployment occurred (used for time-range filtering)
  * - status: Whether the deployment was successful or failed
  *
- * @author Technical Lead Assignment
+ *
  */
 @Entity
 @Table(name = "deployments", indexes = {
@@ -65,12 +65,6 @@ public class Deployment {
     @NotNull
     private DeploymentStatus status;
 
-//    /**
-//     * Environment where deployment occurred (e.g., production, staging)
-//     */
-//    @Column(name = "environment", length = 100)
-//    @Size(max = 100)
-//    private String environment;
 
     /**
      * Name of the application being deployed

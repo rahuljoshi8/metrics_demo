@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Metrics Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .metric-card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+        .sync-button {
+            transition: all 0.3s ease;
+        }
+        .sync-button:hover {
+            transform: scale(1.05);
+        }
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+<!-- Header -->
+<header class="bg-white shadow-sm border-b">
+    <div class="max-w-7xl mx-auto px-4 py-4">
+        <div class="flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <i class="fas fa-chart-line text-blue-600 text-2xl"></i>
+                <h1 class="text-2xl font-bold text-gray-900">Metrics Dashboard</h1>
+            </div>
+            <div class="flex items-center space-x-4 text-sm text-gray-500">
+                <span>Last updated: <span th:text="${lastUpdated}">--</span></span>
+                <button onclick="location.reload()" class="text-blue-600 hover:text-blue-800">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+            </div>
+        </div>
+    </div>
+</header>
+
+<div class="max-w-7xl mx-auto px-4 py-6">
+
+    <!-- Alert Messages -->
+    <div th:if="${successMessage}" class="mb-6 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
+        <span th:text="${successMessage}"></span>
+    </div>
+
+    <div th:if="${errorMessage}" class="mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+        <span th:text="${errorMessage}"></span>
+    </div>
+
+    <div th:if="${error}" class="mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+        <strong>Error:</strong> <span th:text="${error}"></span>
+    </div>
+
+    <!-- Time Range Selector -->
+    <div class="bg-white rounded-lg shadow p-6 mb-6">
+        <form method="get" class="flex flex-wrap items-end gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Time Range</label>
+                <select name="timeRange" class="border border-gray-300 rounded-md px-3 py-2 bg-white" onchange="toggleCustomDates(this.value)">
+                    <option value="7d" th:selected="${selectedTimeRange == '7d'}">Last 7 days</option>
+                    <option value="30d" th:selected="${selectedTimeRange == '30d'}">Last 30 days</option>
+                    <option value="90d" th:selected="${selectedTimeRange == '90d'}">Last 90 days</option>
+                    <option value="custom" th:selected="${selectedTimeRange == 'custom'}">Custom Range</option>
+                </select>
+            </div>
+
+            <div id="customDates" style="display: none;" class="flex gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
+                    <input type="datetime-local" name="startDate" th:value="${startDate}" class="border border-gray-300 rounded-md px-3 py-2">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">End Date</label>
+                    <input type="datetime-local" name="endDate" th:value="${endDate}" class="border border-gray-300 rounded-md px-3 py-2">
+                </div>
+            </div>
+
+            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+                Apply Filter
+            </button>
+        </form>
+    </div>
+
+    <!-- Sync Controls -->
+    <div class="bg-white rounded-lg shadow p-6 mb-6">
+        <h2 class="text-lg font-semibold mb-4 text-gray-900">
+            <i class="fas fa-sync-alt text-blue-600"></i> Data Synchronization
+        </h2>
+        <div class="flex flex-wrap gap-4">
+            <form method="post" action="/sync/deployments" class="inline">
+                <button type="submit" class="sync-button bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 flex items-center gap-2">
+                    <i class="fas fa-rocket"></i>
+                    Sync Deployments
+                    <span class="text-xs opacity-75">(GitHub Actions)</span>
+                </button>
+            </form>
+
+            <form method="post" action="/sync/incidents" class="inline">
+                <button type="submit" class="sync-button bg-orange-600 text-white px-6 py-3 rounded-lg hover:bg-orange-700 flex items-center gap-2">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Sync Incidents
+                    <span class="text-xs opacity-75">(PagerDuty)</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Metrics Cards -->
+    <div th:if="${dashboardData}" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+
+        <!-- Change Failure Rate Card -->
+        <div class="metric-card bg-white rounded-lg shadow p-6 cursor-pointer">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-gray-900">Change Failure Rate</h3>
+                <i class="fas fa-exclamation-circle text-red-500 text-xl"></i>
+            </div>
+            <div class="text-3xl font-bold mb-2"
+                 th:classappend="${dashboardData.changeFailureRate.changeFailureRatePercentage > 20 ? 'text-red-600' : 'text-green-600'}"
+                 th:text="${#numbers.formatDecimal(dashboardData.changeFailureRate.changeFailureRatePercentage, 1, 1)} + '%'">
+                --
+            </div>
+            <div class="text-sm text-gray-500">
+                <span th:text="${dashboardData.changeFailureRate.totalIncidents}">0</span> incidents out of
+                <span th:text="${dashboardData.changeFailureRate.totalDeployments}">0</span> deployments
+            </div>
+        </div>
+
+        <!-- MTTR Card -->
+        <div class="metric-card bg-white rounded-lg shadow p-6 cursor-pointer">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-gray-900">MeanTime to Recovery</h3>
+                <i class="fas fa-clock text-blue-500 text-xl"></i>
+            </div>
+            <div class="text-3xl font-bold mb-2 text-blue-600"
+                 th:text="${#numbers.formatDecimal(dashboardData.meanTimeToRecovery.meanTimeToRecoveryHours, 1, 1)} + 'h'">
+                --
+            </div>
+            <div class="text-sm text-gray-500">
+                <span th:text="${#numbers.formatDecimal(dashboardData.meanTimeToRecovery.meanTimeToRecoveryMinutes, 0, 0)}">0</span> minutes average
+            </div>
+            <div class="text-sm text-gray-500">
+                <span th:text="${dashboardData.meanTimeToRecovery.totalResolvedIncidents}">0</span> resolved incidents
+            </div>
+        </div>
+
+        <!-- Summary Card -->
+        <div class="metric-card bg-white rounded-lg shadow p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-gray-900">Summary</h3>
+                <i class="fas fa-chart-bar text-purple-500 text-xl"></i>
+            </div>
+            <div class="space-y-3">
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Total Deployments:</span>
+                    <span class="font-semibold" th:text="${dashboardData.summary.totalDeployments}">0</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Total Incidents:</span>
+                    <span class="font-semibold" th:text="${dashboardData.summary.totalIncidents}">0</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Resolved Incidents:</span>
+                    <span class="font-semibold" th:text="${dashboardData.summary.resolvedIncidents}">0</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Time Range:</span>
+                    <span class="font-semibold" th:text="${dashboardData.summary.timeRange}">--</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- No Data Message -->
+    <div th:unless="${dashboardData}" class="bg-white rounded-lg shadow p-8 text-center">
+        <i class="fas fa-chart-line text-gray-400 text-4xl mb-4"></i>
+        <h3 class="text-lg font-semibold text-gray-900 mb-2">No Data Available</h3>
+        <p class="text-gray-600 mb-4">Start by syncing your deployment and incident data using the buttons above.</p>
+        <div class="flex justify-center gap-4">
+            <form method="post" action="/sync/deployments" class="inline">
+                <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">
+                    Sync Deployments First
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function toggleCustomDates(value) {
+        const customDates = document.getElementById('customDates');
+        if (value === 'custom') {
+            customDates.style.display = 'flex';
+        } else {
+            customDates.style.display = 'none';
+        }
+    }
+
+    function showDetails(type) {
+        const model = document.getElementById('detailModel');
+        const title = document.getElementById('modelTitle');
+        const content = document.getElementById('modelContent');
+
+        model.classList.remove('hidden');
+        model.classList.add('flex');
+
+        if (type === 'cfr') {
+            title.textContent = 'Change Failure Rate Details';
+            fetchDetails('/details/cfr');
+        } else if (type === 'mttr') {
+            title.textContent = 'Mean Time to Recovery Details';
+            fetchDetails('/details/mttr');
+        }
+    }
+
+    function fetchDetails(url) {
+        const content = document.getElementById('modelContent');
+        content.innerHTML = 'Loading...';
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const timeRange = urlParams.get('timeRange') || '90d';
+        const startDate = urlParams.get('startDate');
+        const endDate = urlParams.get('endDate');
+
+        let fetchUrl = url + '?timeRange=' + timeRange;
+        if (startDate && endDate) {
+            fetchUrl += '&startDate=' + encodeURIComponent(startDate) + '&endDate=' + encodeURIComponent(endDate);
+        }
+
+        fetch(fetchUrl)
+            .then(response => response.json())
+            .then(data => {
+                content.innerHTML = '<pre class="text-sm">' + JSON.stringify(data, null, 2) + '</pre>';
+            })
+            .catch(error => {
+                content.innerHTML = '<div class="text-red-600">Error loading details: ' + error.message + '</div>';
+            });
+    }
+
+    function closeModel() {
+        const model = document.getElementById('detailModel');
+        model.classList.add('hidden');
+        model.classList.remove('flex');
+    }
+
+    // Initialize custom dates visibility
+    document.addEventListener('DOMContentLoaded', function() {
+        const timeRangeSelect = document.querySelector('select[name="timeRange"]');
+        toggleCustomDates(timeRangeSelect.value);
+    });
+
+    // Add loading states to sync buttons
+    document.querySelectorAll('form[action*="/sync/"]').forEach(form => {
+        form.addEventListener('submit', function() {
+            const button = this.querySelector('button');
+            button.classList.add('loading');
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Syncing...';
+        });
+    });
+</script>
+</body>
+</html>

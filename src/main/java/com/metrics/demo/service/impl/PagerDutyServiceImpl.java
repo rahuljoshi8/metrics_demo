@@ -11,7 +11,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -140,38 +139,6 @@ public class PagerDutyServiceImpl implements PagerDutyService {
                 .resolvedAt(parseDateTime(pagerDutyIncident.getResolvedAt()))
                 .pagerdutyIncidentKey(pagerDutyIncident.getIncidentKey())
                 .build();
-    }
-
-    @Override
-    public PagerDutyIncident fetchIncidentById(String incidentId) {
-        log.debug("Fetching PagerDuty incident by ID: {}", incidentId);
-
-        try {
-            WebClient webClient = webClientBuilder
-                    .baseUrl(baseUrl)
-                    .defaultHeader(HttpHeaders.AUTHORIZATION, "Token token=" + apiToken)
-                    .defaultHeader(HttpHeaders.ACCEPT, "application/vnd.pagerduty+json;version=2")
-                    .build();
-
-            Map<String, Object> response = webClient.get()
-                    .uri("/incidents/{id}", incidentId)
-                    .retrieve()
-                    .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
-                    .block();
-
-            @SuppressWarnings("unchecked")
-            Map<String, Object> incidentData = (Map<String, Object>) response.get("incident");
-
-            return incidentData != null ? convertMapToIncident(incidentData) : null;
-
-        } catch (WebClientResponseException e) {
-            if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
-                log.warn("Incident not found: {}", incidentId);
-                return null;
-            }
-            log.error("Error fetching incident {} from PagerDuty: {}", incidentId, e.getMessage());
-            throw new RuntimeException("Failed to fetch incident from PagerDuty", e);
-        }
     }
 
     @Override

@@ -2,7 +2,6 @@ package com.metrics.demo;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
@@ -14,11 +13,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
  *
  * The application integrates with PagerDuty for incident data and GitHub Actions for deployment data.
  *
- * @author Technical Lead Assignment
- * @version 1.0.0
  */
 @SpringBootApplication
-@EnableCaching
 @EnableScheduling
 public class MetricsDashboardApplication {
 

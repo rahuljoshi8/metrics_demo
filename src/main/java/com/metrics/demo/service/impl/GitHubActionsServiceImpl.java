@@ -11,8 +11,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,7 +30,6 @@ import java.util.Optional;
  * Handles integration with GitHub Actions API to fetch workflow run data
  * and synchronize it with the local database as deployment data.
  *
- * @author Technical Lead Assignment
  */
 @Service
 @RequiredArgsConstructor
@@ -41,6 +38,7 @@ public class GitHubActionsServiceImpl implements GitHubActionsService {
 
     private final DeploymentRepository deploymentRepository;
     private final WebClient.Builder webClientBuilder;
+
 
     @Value("${github.api.token}")
     private String apiToken;
@@ -55,6 +53,7 @@ public class GitHubActionsServiceImpl implements GitHubActionsService {
     private String repositoryName;
 
     private static final DateTimeFormatter ISO_FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+
 
     @Override
     public List<GitHubWorkflowRun> fetchWorkflowRuns(LocalDateTime since, LocalDateTime until) {
@@ -136,47 +135,17 @@ public class GitHubActionsServiceImpl implements GitHubActionsService {
                 .deploymentId("gh-" + workflowRun.getId())
                 .timestamp(parseDateTime(workflowRun.getCreatedAt()))
                 .status(parseDeploymentStatus(workflowRun.getConclusion()))
-//                .environment(determineEnvironment(workflowRun))
                 .applicationName(workflowRun.getRepository() != null ?
                         workflowRun.getRepository().getName() : repositoryName)
                 .version(workflowRun.getHeadCommit() != null ?
                         workflowRun.getHeadCommit().getId() : null)
                 .workflowRunId(workflowRun.getId())
                 .repositoryName(workflowRun.getRepository() != null ?
-                        workflowRun.getRepository().getFullName() : null)
+                        workflowRun.getRepository().getName() : null)
                 .workflowName(workflowRun.getName())
                 .build();
     }
 
-    @Override
-    public GitHubWorkflowRun fetchWorkflowRunById(Long runId) {
-        log.debug("Fetching GitHub workflow run by ID: {}", runId);
-
-        try {
-            WebClient webClient = webClientBuilder
-                    .baseUrl(baseUrl)
-                    .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + apiToken)
-                    .defaultHeader(HttpHeaders.ACCEPT, "application/vnd.github+json")
-                    .defaultHeader("X-GitHub-Api-Version", "2022-11-28")
-                    .build();
-
-            Map<String, Object> response = webClient.get()
-                    .uri("/repos/{owner}/{repo}/actions/runs/{run_id}", repositoryOwner, repositoryName, runId)
-                    .retrieve()
-                    .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
-                    .block();
-
-            return response != null ? convertMapToWorkflowRun(response) : null;
-
-        } catch (WebClientResponseException e) {
-            if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
-                log.warn("Workflow run not found: {}", runId);
-                return null;
-            }
-            log.error("Error fetching workflow run {} from GitHub: {}", runId, e.getMessage());
-            throw new RuntimeException("Failed to fetch workflow run from GitHub", e);
-        }
-    }
 
     @Override
     public boolean isHealthy() {
@@ -221,6 +190,27 @@ public class GitHubActionsServiceImpl implements GitHubActionsService {
     }
 
     private GitHubWorkflowRun convertMapToWorkflowRun(Map<String, Object> runData) {
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> repository = (Map<String, Object>) runData.get("repository");
+
+        GitHubWorkflowRun.GitHubRepository githubRepository = repository != null ?
+                GitHubWorkflowRun.GitHubRepository.builder()
+                        .id(((Number) repository.get("id")).longValue())
+                        .name((String) repository.get("name"))
+                        .fullName((String) repository.get("full_name"))
+                        .build() : null;
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> headCommit = (Map<String, Object>) runData.get("head_commit");
+
+        GitHubWorkflowRun.GitHubCommit commit = headCommit != null ?
+                GitHubWorkflowRun.GitHubCommit.builder()
+                        .id((String) headCommit.get("id"))
+                        .message((String) headCommit.get("message"))
+                        .timestamp((String) headCommit.get("timestamp"))
+                        .build() : null;
+
         return GitHubWorkflowRun.builder()
                 .id(((Number) runData.get("id")).longValue())
                 .name((String) runData.get("name"))
@@ -231,6 +221,8 @@ public class GitHubActionsServiceImpl implements GitHubActionsService {
                 .updatedAt((String) runData.get("updated_at"))
                 .runStartedAt((String) runData.get("run_started_at"))
                 .headBranch((String) runData.get("head_branch"))
+                .repository(githubRepository)
+                .headCommit(commit)
                 .event((String) runData.get("event"))
                 .build();
     }
@@ -246,23 +238,6 @@ public class GitHubActionsServiceImpl implements GitHubActionsService {
         };
     }
 
-//    private String determineEnvironment(GitHubWorkflowRun workflowRun) {
-//        // Determine environment based on branch or workflow name
-//        String branch = workflowRun.getHeadBranch();
-//        String workflowName = workflowRun.getName();
-//
-//        if (branch != null && (branch.equals("main") || branch.equals("master"))) {
-//            return "production";
-//        } else if (branch != null && branch.equals("develop")) {
-//            return "staging";
-//        } else if (workflowName != null && workflowName.toLowerCase().contains("prod")) {
-//            return "production";
-//        } else if (workflowName != null && workflowName.toLowerCase().contains("staging")) {
-//            return "staging";
-//        }
-//
-//        return "development";
-//    }
 
     private LocalDateTime parseDateTime(String dateTimeString) {
         if (dateTimeString == null) return LocalDateTime.now();

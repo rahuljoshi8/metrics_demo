@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
  * Contains the calculated MTTR in multiple time units
  * along with supporting statistics.
  *
- * @author Technical Lead Assignment
+ *
  */
 @Data
 @Builder
@@ -60,10 +60,7 @@ public class MTTRResponse {
      */
     private String timeRange;
 
-//    /**
-//     * Optional environment filter applied.
-//     */
-//    private String environment;
+
 
     /**
      * Timestamp when this metric was calculated.

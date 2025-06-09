@@ -13,7 +13,7 @@ import java.util.List;
  * Provides methods to fetch incident data from PagerDuty API
  * and synchronize it with the local database.
  *
- * @author Technical Lead Assignment
+ *
  */
 public interface PagerDutyService {
 
@@ -40,13 +40,7 @@ public interface PagerDutyService {
      */
     Incident convertToEntity(PagerDutyIncident pagerDutyIncident);
 
-    /**
-     * Fetches a specific incident by ID from PagerDuty.
-     *
-     * @param incidentId the PagerDuty incident ID
-     * @return the incident data, or null if not found
-     */
-    PagerDutyIncident fetchIncidentById(String incidentId);
+
 
     /**
      * Checks the health of PagerDuty API connection.

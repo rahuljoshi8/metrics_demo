@@ -13,7 +13,7 @@ import java.util.List;
  * Provides methods to fetch workflow run data from GitHub Actions API
  * and synchronize it with the local database as deployment data.
  *
- * @author Technical Lead Assignment
+ *
  */
 public interface GitHubActionsService {
 
@@ -40,13 +40,7 @@ public interface GitHubActionsService {
      */
     Deployment convertToEntity(GitHubWorkflowRun workflowRun);
 
-    /**
-     * Fetches a specific workflow run by ID from GitHub Actions.
-     *
-     * @param runId the GitHub Actions workflow run ID
-     * @return the workflow run data, or null if not found
-     */
-    GitHubWorkflowRun fetchWorkflowRunById(Long runId);
+
 
     /**
      * Fetches workflow runs for a specific repository.

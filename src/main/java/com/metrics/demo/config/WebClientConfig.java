@@ -7,7 +7,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 /**
  * WebClient configuration for external API calls.
  *
- * @author Technical Lead Assignment
  */
 @Configuration
 public class WebClientConfig {

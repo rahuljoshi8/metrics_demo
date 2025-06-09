@@ -18,7 +18,7 @@ import java.util.Map;
 /**
  * Health check controller for monitoring external service connectivity.
  *
- * @author Technical Lead Assignment
+ *
  */
 @RestController
 @RequestMapping("/api/v1/health")

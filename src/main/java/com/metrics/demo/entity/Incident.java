@@ -24,7 +24,7 @@ import java.time.LocalDateTime;
  * - acknowledgedAt: When someone acknowledged the incident
  * - resolvedAt: When the incident was resolved (used for MTTR calculation)
  *
- * @author Technical Lead Assignment
+ *
  */
 @Entity
 @Table(name = "incidents", indexes = {

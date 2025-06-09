@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
  * Contains the calculated CFR along with supporting data
  * such as total deployments and incidents count.
  *
- * @author Technical Lead Assignment
+ *
  */
 @Data
 @Builder
@@ -55,10 +55,6 @@ public class ChangeFailureRateResponse {
      */
     private String timeRange;
 
-//    /**
-//     * Optional environment filter applied.
-//     */
-//    private String environment;
 
     /**
      * Timestamp when this metric was calculated.

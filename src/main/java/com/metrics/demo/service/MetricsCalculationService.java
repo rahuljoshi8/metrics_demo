@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
  * Provides methods to calculate key metrics such as Change Failure Rate
  * and Mean Time to Recovery based on incident and deployment data.
  *
- * @author Technical Lead Assignment
+ *
  */
 public interface MetricsCalculationService {
 
