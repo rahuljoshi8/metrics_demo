@@ -113,10 +113,6 @@ graph TB
 
 #### **✅ Chosen Approach vs ❌ Alternatives**
 
-**Manual Sync vs. Automated Polling**
-- ✅ User-controlled data refresh, respects API rate limits
-- ❌ Could implement webhook-based real-time updates
-
 **Server-Side Rendering vs. Client-Side SPA**
 - ✅ Simple deployment, faster initial load, SEO-friendly
 - ❌ Could use React/Vue for richer interactions and better UX

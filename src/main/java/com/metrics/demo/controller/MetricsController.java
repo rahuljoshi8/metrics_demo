@@ -157,12 +157,16 @@ public class MetricsController {
 
 
     @GetMapping("/incidents")
+    @Operation(summary = "Sync Incidents Data",
+            description = "Calls the PagerDuty service to sync incidents data")
     public void syncIncidents(){
         pagerDutyService.syncIncidents();
 
     }
 
     @GetMapping("/deployments")
+    @Operation(summary = "Sync Deployments Data",
+            description = "Calls the GitHub service to sync deployments data")
     public void syncDeployments(){
         gitHubActionsService.syncDeployments();
 
