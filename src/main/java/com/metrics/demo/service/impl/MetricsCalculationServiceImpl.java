@@ -83,7 +83,7 @@ public class MetricsCalculationServiceImpl implements MetricsCalculationService 
         double mttrHours = 0.0;
 
         if (!resolvedIncidents.isEmpty()) {
-            // Calculate total recovery time in minutes using Java 8 Duration
+            // Calculate total recovery time in minutes using Duration
             long totalRecoveryTimeMinutes = resolvedIncidents.stream()
                     .filter(incident -> incident.getResolvedAt() != null && incident.getCreatedAt() != null)
                     .mapToLong(incident -> Duration.between(incident.getCreatedAt(), incident.getResolvedAt()).toMinutes())
