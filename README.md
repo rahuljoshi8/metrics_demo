@@ -136,7 +136,7 @@ graph TB
 
 - **Java 17** or higher
 - **Maven 3.6+**
-- **PostgreSQL 15+** (or use Docker)
+- **Thymeleaf**
 - **Git**
 
 ### **Environment Setup**
